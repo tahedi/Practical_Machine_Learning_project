@@ -13,9 +13,26 @@ The report contain :
  5. Influence of number of training examples to accuracy of model.
 ## Reading data
 
-```{r}
+
+```r
 library("caret")
+```
+
+```
+## Loading required package: lattice
+## Loading required package: ggplot2
+```
+
+```r
 library("randomForest")
+```
+
+```
+## randomForest 4.6-7
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```r
 set.seed(1988)
 setwd("G:/formations/specialization Data Science/8)Practical Machine Learning/course project")
 data <- read.csv("./pml-training.csv")
@@ -23,17 +40,19 @@ data <- read.csv("./pml-training.csv")
 
 ## Preprocessing the data set
 ### Delet the first Column (user_name).
-```{r }
+
+```r
 data[,1]=NULL
 ```
 ### Impute Missing Values by median/mode (na.roughfix) and save vector of median mode.
-```{r}
+
+```r
 data1<-na.roughfix(data)
 ```
 ### Keep numeric features and delete  the other features.
 
-```{r}
 
+```r
 f<- function(x){
                if(class(x) == "numeric")
                   {T }
@@ -46,7 +65,8 @@ data1 <- cbind(data1,classe=data$classe)
 ```
 
 ## Cross Validation for evaluation model accuracy
-```{r}
+
+```r
 folds <- createFolds(data1$classe,k=5)
 Accuracy <- NULL
 
@@ -63,11 +83,12 @@ for(i in 1:length(folds)){
   Accuracy <- c(Accuracy,confMatrix$overall["Accuracy"]*100)
 }
 ```
-The avearge Accuracy of crossvaliation with 5 groups is **`r mean(Accuracy)`**
+The avearge Accuracy of crossvaliation with 5 groups is **99.4598**
 
 ## Create training and test sets w ith about 70% of the observations assigned to trainingSet and 30% to testSet.
 
-```{r }
+
+```r
 indexTraining <- createDataPartition(data1$classe,p=0.7,list=F)
 trainingSet<- data1[indexTraining,]
 testSet <- data1[-indexTraining,]
@@ -75,33 +96,71 @@ testSet <- data1[-indexTraining,]
 
 ## Build machine learning final model using Random forest algorithme. 
 
-```{r }
+
+```r
 workMoedl <- randomForest(classe ~ .,data=trainingSet)
 ```
 
 ## Evaluation of predictive power of model using other test set (testSet)
-```{r }
+
+```r
 predictClass <- predict(workMoedl,testSet)
 confMatrix <- confusionMatrix(data=predictClass,reference=testSet$classe)
 confMatrix
 ```
 
+```
+## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1672    8    0    0    0
+##          B    2 1128    9    0    0
+##          C    0    3 1011   10    0
+##          D    0    0    6  953    0
+##          E    0    0    0    1 1082
+## 
+## Overall Statistics
+##                                         
+##                Accuracy : 0.993         
+##                  95% CI : (0.991, 0.995)
+##     No Information Rate : 0.284         
+##     P-Value [Acc > NIR] : <2e-16        
+##                                         
+##                   Kappa : 0.992         
+##  Mcnemar's Test P-Value : NA            
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity             0.999    0.990    0.985    0.989    1.000
+## Specificity             0.998    0.998    0.997    0.999    1.000
+## Pos Pred Value          0.995    0.990    0.987    0.994    0.999
+## Neg Pred Value          1.000    0.998    0.997    0.998    1.000
+## Prevalence              0.284    0.194    0.174    0.164    0.184
+## Detection Rate          0.284    0.192    0.172    0.162    0.184
+## Detection Prevalence    0.285    0.194    0.174    0.163    0.184
+## Balanced Accuracy       0.998    0.994    0.991    0.994    1.000
+```
+
 ## Treat the test cases
  1. read test cases
-```{r}
+
+```r
 setwd("G:/formations/specialization Data Science/8)Practical Machine Learning/course project")
 testCases <- read.csv("./pml-testing.csv")
-
 ```
  2. Delet the first Column (user_name) and last one (problem_id) and keep features of training 
-```{r}
+
+```r
 testCases[,1]=NULL
 testCases[,ncol(testCases)]<-NULL
 ##ind are indexes of features used in training
 testCases <- testCases[,ind]
 ```
  3. Impute Missing Values by median/mode of training set.
-```{r}
+
+```r
 for(i in 1:nrow(testCases)){
   for(j in 1:ncol(testCases)){
     if(is.na(testCases[i,j])){
@@ -111,11 +170,13 @@ for(i in 1:nrow(testCases)){
 }
 ```
  4. Predict classes of test cases
-```{r}
+
+```r
 answers <- predict(workMoedl,testCases)
 ```
  5. Write vector of ansxer in files (each answer in file)
-```{r}
+
+```r
 pml_write_files = function(x){
   n = length(x)
   for(i in 1:n){
@@ -128,7 +189,8 @@ pml_write_files(answers)
 ```
 
 ## influence of number of training examples
-```{r}
+
+```r
 trainEvaluate <- function(rate){
   indexTraining <- createDataPartition(data1$classe,p=rate,list=F)
   trainingSet<- data1[indexTraining,]
@@ -149,4 +211,6 @@ for(r in rates){
 }
 plot(x=n,y=Accuracy,xlab="Number of training examples",ylab="Accuracy",type="b",ylim=c(0,100))  
 ```
+
+![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14.png) 
 
